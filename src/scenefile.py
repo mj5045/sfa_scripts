@@ -25,9 +25,8 @@ class SceneFile(object):
     
     def _init_from_path(self, path):
         path = Path(path)
-        self.folder_path = path.parent
-        self.ext = path.ext
-        self.descriptor, self.task, ver = path.name.stripext().split("_")
+        self.folder_path = pat
+        self.descriptor, self.task, ver = path.name.struptext().split("_")
         self.ver = int(ver.split("v")[-1])
 
     def save(self):
