@@ -1,20 +1,24 @@
 import logging
 
-from PySide2 import  QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
+import maya.cmds as cmds
 import pymel.core as pmc
 from pymel.core.system import Path
 
 log = logging.getLogger(__name__)
 
+
 def maya_main_window():
     main_window = omui.MQtUtil.mainWindow()
     return wrapInstance(long(main_window), QtWidgets.QWidget)
 
+
 class SmartSaveUI(QtWidgets.QDialog):
     def __init__(self):
         super(SmartSaveUI, self).__init__(parent=maya_main_window())
+        self.title_lbl = QtWidgets.QLabel("Smart Save")
         self.setWindowTitle("Smart Save")
         self.setMinimumWidth(500)
         self.setMaximumHeight(200)
@@ -25,15 +29,22 @@ class SmartSaveUI(QtWidgets.QDialog):
     def create_ui(self):
         self.title_lbl = QtWidgets.QLabel("Smart Save")
         self.title_lbl.setStyleSheet("font: bold 24px")
-        self.folder_le = QtWidgets.QLineEdit("D:\\")
+        self.folder_layout = self._create_folder_ui()
+        self.main_layout = QtWidgets.QVBoxLayout()
+        self.main_layout.addWidget(self.title_lbl)
+        self.main_layout.addLayout(self.folder_layout)
+        self.setLayout(self.main_layout)
+
+    def _create_folder_ui(self):
+        default_folder = Path(cmds.workspace(rootDirectory=True, query=True))
+        default_folder = default_folder / "scenes"
+        self.folder_le = QtWidgets.QLineEdit(default_folder)
         self.folder_browse_btn = QtWidgets.QPushButton("...")
         layout = QtWidgets.QHBoxLayout()
         layout.addWidget(self.folder_le)
         layout.addWidget(self.folder_browse_btn)
-        self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.addWidget(self.title_lbl)
-        self.main_layout.addLayout(layout)
-        self.setLayout(self.main_layout)
+        return layout
+
 
 class SceneFile(object):
 
@@ -74,7 +85,7 @@ class SceneFile(object):
     def save(self):
         try:
             return pmc.system.saveAs(self.path)
-        except RuntimeError as err:
+        except RuntimeError:
             log.warning("Missing directories in path.  Creating folders...")
             self.folder_path.makedirs_p()
             return pmc.system.saveAs(self.path)
@@ -93,10 +104,6 @@ class SceneFile(object):
         latest_ver_num = int(latest_scenefile.split("_v")[-1])
         return latest_ver_num + 1
 
-
-
     def increment_save(self):
         self.ver += self.next_avail_ver()
         self.save()
-
-
