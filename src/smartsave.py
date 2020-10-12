@@ -24,9 +24,15 @@ class SmartSaveUI(QtWidgets.QDialog):
 
     def create_ui(self):
         self.title_lbl = QtWidgets.QLabel("Smart Save")
-        self.title_lbl.setStyleSheet("font: bold 25px")
+        self.title_lbl.setStyleSheet("font: bold 24px")
+        self.folder_le = QtWidgets.QLineEdit("D:\\")
+        self.folder_browse_btn = QtWidgets.QPushButton("...")
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.folder_le)
+        layout.addWidget(self.folder_browse_btn)
         self.main_layout = QtWidgets.QVBoxLayout()
         self.main_layout.addWidget(self.title_lbl)
+        self.main_layout.addLayout(layout)
         self.setLayout(self.main_layout)
 
 class SceneFile(object):
