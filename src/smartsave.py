@@ -1,9 +1,24 @@
 import logging
 
+from PySide2 import  QtWidgets, QtCore
+from shiboken2 import wrapInstance
+import maya.OpenMayaUI as omui
 import pymel.core as pmc
 from pymel.core.system import Path
 
 log = logging.getLogger(__name__)
+
+def maya_main_window():
+    main_window = omui.MQtUtil.mainWindow()
+    return wrapInstance(long(main_window), QtWidgets.QWidget)
+
+class SmartSaveUI(QtWidgets.QDialog):
+    def __init__(self):
+        super(SmartSaveUI, self).__init__(parent=maya_main_window())
+        self.setWindowTitle("Smart Save")
+        self.setMinimumWidth(500)
+        self.setMaximumHeight(200)
+        self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
 
 class SceneFile(object):
 
@@ -59,9 +74,9 @@ class SceneFile(object):
             return 1
         matching_scenefiles.sort(reverse=True)
         latest_scenefile = matching_scenefiles[0]
-        latest_scenefile = latest_scenefile.name.splitext()
+        latest_scenefile = latest_scenefile.name.stripext()
         latest_ver_num = int(latest_scenefile.split("_v")[-1])
-        return latest_ver_num +1
+        return latest_ver_num + 1
 
 
 

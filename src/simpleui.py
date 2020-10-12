@@ -6,7 +6,7 @@ from shiboken2 import wrapInstance
 def maya_main_window():
 
     main_windows = omui.MQtUtil.mainWindow()
-    return wrapInstance(Long(main_windows), QtWidgets.QWidget)
+    return wrapInstance(long(main_windows), QtWidgets.QWidget)
 
 class SimpleUI(QtWidgets.QDialog):
 
