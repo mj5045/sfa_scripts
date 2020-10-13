@@ -2,7 +2,7 @@ import logging
 
 from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
-import maya.OpenMayaUI as omui
+import maya.OpenMayaUI as Omui
 import maya.cmds as cmds
 import pymel.core as pmc
 from pymel.core.system import Path
@@ -11,13 +11,16 @@ log = logging.getLogger(__name__)
 
 
 def maya_main_window():
-    main_window = omui.MQtUtil.mainWindow()
+    main_window = Omui.MQtUtil.mainWindow()
     return wrapInstance(long(main_window), QtWidgets.QWidget)
 
 
 class SmartSaveUI(QtWidgets.QDialog):
     def __init__(self):
         super(SmartSaveUI, self).__init__(parent=maya_main_window())
+        self.main_lay = QtWidgets.QVBoxLayout()
+        self.filename_lay = self._create_folder_ui()
+        self.folder_lay = self._create_folder_ui()
         self.title_lbl = QtWidgets.QLabel("Smart Save")
         self.setWindowTitle("Smart Save")
         self.setMinimumWidth(500)
@@ -27,17 +30,25 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.create_ui()
 
     def create_ui(self):
-        self.title_lbl = QtWidgets.QLabel("Smart Save")
         self.title_lbl.setStyleSheet("font: bold 24px")
-        self.folder_layout = self._create_folder_ui()
-        self.filename_lay = self._create_folder_ui()
-        self._create_filename_ui()
-        self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_layout.addWidget(self.title_lbl)
-        self.main_layout.addLayout(self.folder_layout)
-        self.main_layout.addLayout(self.filename_lay)
-        self.setLayout(self.main_layout)
+        layout = self._create_button_ui()
+        self.main_lay.addWidget(self.title_lbl)
+        self.main_lay.addLayout(self.folder_lay)
+        self.main_lay.addLayout(self.filename_lay)
+        self.main_lay.addLayout(layout)
+        self.main_lay.addStretch()
+        self.main_lay.addLayout(self.button_lay)
+        self.setLayout(self.main_lay)
 
+    def _create_button_ui(self):
+        self.save_btn = QtWidgets.QPushButton("Save")
+        self.save_increment_btn = QtWidgets.QPushButton("Save Increment")
+        layout = QtWidgets.QHBoxLayout()
+        layout.addWidget(self.save_btn)
+        layout.addWidget(self.save_increment_btn)
+        return layout
+
+    @property
     def _create_filename_ui(self):
         self.descriptor_header_lbl = QtWidgets.QLabel("Descriptor")
         self.descriptor_header_lbl.setStyleSheet("font: bold")
@@ -45,10 +56,20 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.task_header_lbl.setStyleSheet("font: bold")
         self.ver_header_lbl = QtWidgets.QLabel("Version")
         self.ver_header_lbl.setStyleSheet("font: bold")
+        self.descriptor_le = QtWidgets.QLineEdit("main")
+        self.task_le = QtWidgets.QLineEdit("model")
+        self.ver_sbx = QtWidgets.QSpinBox()
+        self.ver_sbx.setValue(1)
+        self.ext_lbl = QtWidgets.QLabel(".ma")
         layout = QtWidgets.QGridLayout()
-        layout.addWidget.addWidget(self.descriptor_header_lbl, 0, 0)
-        layout.addWidget.addWidget(self.task_header_lbl, 0, 2)
-        layout.addWidget.addWidget(self.ver_header_lbl, 0, 4)
+        layout.addWidget(self.descriptor_header_lbl, 0, 0)
+        layout.addWidget(self.task_header_lbl, 0, 2)
+        layout.addWidget(self.ver_header_lbl, 0, 4)
+        layout.addWidget(self.descriptor_le, 1, 0)
+        layout.addWidget(self.task_le, 1, 2)
+        layout.addWidget(self.ver_sbx, 1, 4)
+        layout.addWidget(self.ext_lbl, 1, 5)
+        return layout
 
     def _create_folder_ui(self):
         default_folder = Path(cmds.workspace(rootDirectory=True, query=True))
