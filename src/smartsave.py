@@ -2,7 +2,7 @@ import logging
 
 from PySide2 import QtWidgets, QtCore
 from shiboken2 import wrapInstance
-import maya.OpenMayaUI as Omui
+import maya.OpenMayaUI as omui
 import maya.cmds as cmds
 import pymel.core as pmc
 from pymel.core.system import Path
@@ -11,13 +11,17 @@ log = logging.getLogger(__name__)
 
 
 def maya_main_window():
-    main_window = Omui.MQtUtil.mainWindow()
+    main_window = omui.MQtUtil.mainWindow()
     return wrapInstance(long(main_window), QtWidgets.QWidget)
 
 
 class SmartSaveUI(QtWidgets.QDialog):
     def __init__(self):
         super(SmartSaveUI, self).__init__(parent=maya_main_window())
+        self.button_lay = self._create_button_ui()
+        self.ver_header_lbl = QtWidgets.QLabel("Version")
+        self.task_header_lbl = QtWidgets.QLabel("Task")
+        self.descriptor_header_lbl = QtWidgets.QLabel("Descriptor")
         self.main_lay = QtWidgets.QVBoxLayout()
         self.filename_lay = self._create_folder_ui()
         self.folder_lay = self._create_folder_ui()
@@ -26,16 +30,22 @@ class SmartSaveUI(QtWidgets.QDialog):
         self.setMinimumWidth(500)
         self.setMaximumHeight(200)
         self.setWindowFlags(self.windowFlags() ^ QtCore.Qt.WindowContextHelpButtonHint)
-
         self.create_ui()
 
     def create_ui(self):
         self.title_lbl.setStyleSheet("font: bold 24px")
-        layout = self._create_button_ui()
+        self.folder_lay = self._create_folder_ui()
+        self._create_folder_ui()
+        self.descriptor_header_lbl.setStyleSheet("front: bold")
+        self.task_header_lbl.setStyleSheet("font: bold")
+        self.ver_header_lbl.setStyleSheet("font: bold")
+        self.filename_lay = QtWidgets.QGridLayout()
+        self.filename_lay.addWidget(self.descriptor_header_lbl, 0, 0)
+        self.filename_lay.addWidget(self.task_header_lbl, 0, 2)
+        self.filename_lay.addWidget(self.ver_header_lbl, 0, 4)
         self.main_lay.addWidget(self.title_lbl)
         self.main_lay.addLayout(self.folder_lay)
         self.main_lay.addLayout(self.filename_lay)
-        self.main_lay.addLayout(layout)
         self.main_lay.addStretch()
         self.main_lay.addLayout(self.button_lay)
         self.setLayout(self.main_lay)
@@ -50,25 +60,34 @@ class SmartSaveUI(QtWidgets.QDialog):
 
     @property
     def _create_filename_ui(self):
+        layout = self._create_filename_headers()
+        self.descriptor_le = QtWidgets.QLineEdit("main")
+        self.descriptor_le.setMinimumWidth(100)
+        self.task_le = QtWidgets.QLineEdit("model")
+        self.task_le.setFixedWidth(50)
+        self.ver_sbx = QtWidgets.QSpinBox()
+        self.ver_sbx.setButtonSymbols(QtWidgets.QAbstractSpinBox.PlusMinus)
+        self.ver_sbx.setFixedWidth(50)
+        self.ver_sbx.setValue(1)
+        self.ext_lbl = QtWidgets.QLabel(".ma")
+        layout.addWidget(self.descriptor_le, 1, 0)
+        layout.addWidget(QtWidgets.QLabel("_V"), 1, 3)
+        layout.addWidget(self.task_le, 1, 2)
+        layout.addWidget(self.ver_sbx, 1, 4)
+        layout.addWidget(self.ext_lbl, 1, 5)
+        return layout
+
+    def _create_filename_headers(self):
         self.descriptor_header_lbl = QtWidgets.QLabel("Descriptor")
         self.descriptor_header_lbl.setStyleSheet("font: bold")
         self.task_header_lbl = QtWidgets.QLabel("Task")
         self.task_header_lbl.setStyleSheet("font: bold")
         self.ver_header_lbl = QtWidgets.QLabel("Version")
         self.ver_header_lbl.setStyleSheet("font: bold")
-        self.descriptor_le = QtWidgets.QLineEdit("main")
-        self.task_le = QtWidgets.QLineEdit("model")
-        self.ver_sbx = QtWidgets.QSpinBox()
-        self.ver_sbx.setValue(1)
-        self.ext_lbl = QtWidgets.QLabel(".ma")
         layout = QtWidgets.QGridLayout()
         layout.addWidget(self.descriptor_header_lbl, 0, 0)
         layout.addWidget(self.task_header_lbl, 0, 2)
         layout.addWidget(self.ver_header_lbl, 0, 4)
-        layout.addWidget(self.descriptor_le, 1, 0)
-        layout.addWidget(self.task_le, 1, 2)
-        layout.addWidget(self.ver_sbx, 1, 4)
-        layout.addWidget(self.ext_lbl, 1, 5)
         return layout
 
     def _create_folder_ui(self):
